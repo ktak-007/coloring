@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+readonly BIN_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly CMD="$(basename ${BASH_SOURCE[0]/%-wrapper/})".hs
+
+export BIN_DIR
+
+"${BIN_DIR}"/"${CMD}" "$@"

@@ -1,0 +1,13 @@
+00:05:43 2022/10/05 [DEBUG] Going to sleep for 2 seconds
+04:12:38 2022/10/06 [INFO] Run precondition...
+04:12:38 2022/10/06 [INFO] precondition #1: Create client, subscription and domain (duration: 00.000).
+07:00:44 2022/11/05 [INFO] Run steps...
+04:12:38 2022/10/06 [INFO] steps #1: Create client, subscription and domain (duration: 00.000).
+04:12:38 2022/10/06 [INFO] Run verify...
+04:12:38 2022/10/06 [INFO] verify #1: Create client, subscription and domain (duration: 00.000).
+05:43:45 2022/10/06 [ERR] saveSeleniumScreen: storage server is not configured in config xml.
+05:43:45 2022/10/06 [WARN] saveSeleniumScreen: storage server is not configured in config xml.
+precondition #1: SUCCESS: Hello
+steps #1: SUCCESS: Hello
+steps #2: Hello again
+Any unparsed string
