@@ -10,9 +10,10 @@ import Text.Parsec
 import Text.Parsec.String (Parser)
 
 import qualified Plesk.Atf as Atf
+import qualified Plesk.Panel as Panel
 
 parsersList :: [Parser [Chunk]]
-parsersList = [ Atf.parser ]
+parsersList = [ Atf.parser, Panel.parser ]
 
 genericParser :: Parser [Chunk]
 genericParser = choice parsersList
