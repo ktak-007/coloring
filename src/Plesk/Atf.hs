@@ -24,11 +24,14 @@ data AtfStdLog = AtfStdLog { dateTime :: String
                            , splitter2 :: String
                            , atfStep :: String
                            , splitter3 :: String
-                           , message :: String
+                           , message :: AtfStdMessage
                            } deriving Show
+data AtfStdMessage = AtfStdMessageNormal String
+                   | AtfStdMessageRun String
+                   deriving Show
 
 instance LogLine AtfStdLog where
-  empty = AtfStdLog "" "" "" "" "" "" ""
+  empty = AtfStdLog "" "" "" "" "" "" $ AtfStdMessageNormal ""
   logLineParser _ = getColored <$> stdLogParser
     where stdLogParser = AtfStdLog <$> dateTimeParser
                                    <*> some space
@@ -42,6 +45,9 @@ instance LogLine AtfStdLog where
           dateParser = count 4 digit <> string "/" <> count 2 digit <> string "/" <> count 2 digit
           levelParser = string "[" <> some upper <> string "]"
           atfStepParser = option "" $ try stepKeywordWithNum
+          messageParser = runnerMessage <|> normalMessage
+          runnerMessage = AtfStdMessageRun <$> (string "Run " <> stepKeyword <> string "...")
+          normalMessage = AtfStdMessageNormal <$> many anyChar
   getColored AtfStdLog {..} = [ p dateTime & fore grey
                               , p splitter1
                               , p level & fore ( case level of
@@ -53,14 +59,11 @@ instance LogLine AtfStdLog where
                               , p splitter2
                               , p atfStep & fore yellow & back red
                               , p splitter3
-                              , p message & ( case message of
-                                                "Run precondition..."  -> fore yellow <&> back blue
-                                                "Run steps..." -> fore yellow <&> back blue
-                                                "Run verify..." -> fore yellow <&> back blue
-                                                _ -> fore cyan
-                                            )
+                              , ( case message of
+                                       AtfStdMessageRun msg -> p msg & fore yellow & back blue
+                                       AtfStdMessageNormal msg -> p msg & fore cyan
+                                )
                               ]
-    where a <&> b = \x -> a $ b x
 
 -- precondition #1: SUCCESS: Hello
 data AtfShortLog = AtfShortLog { atfStep :: String
@@ -79,6 +82,8 @@ instance LogLine AtfShortLog where
                                      <*> optionalSplitParser
                                      <*> messageParser
           optionalStatusParser = option "" $ try $ statusParser <* lookAhead splitParser
+          messageParser = many anyChar
+
   getColored AtfShortLog {..} = [ p atfStep & fore (if status /= "" then blue else red)
                                 , p splitter1
                                 , p status & fore (if status == "SUCCESS" then green else red)
@@ -92,9 +97,6 @@ splitParser = string ":" <> some space
 
 optionalSplitParser :: Parser String
 optionalSplitParser = option "" $ try splitParser
-
-messageParser :: Parser String
-messageParser = many anyChar
 
 stepKeyword :: Parser String
 stepKeyword = choice $ string <$> ["precondition", "steps", "verify"]
