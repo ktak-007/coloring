@@ -18,12 +18,11 @@ data AtfStdLog = AtfStdLog { dateTime :: String
                            , splitter1 :: String
                            , level :: String
                            , splitter2 :: String
-                           , atfStep :: String
-                           , splitter3 :: String
                            , message :: AtfStdMessage
                            } deriving Show
 data AtfStdMessage = AtfStdMessageNormal String
                    | AtfStdMessageRun String
+                   | AtfStdStep String String
                    deriving Show
 
 atfStdParser :: Parser [Chunk]
@@ -32,17 +31,16 @@ atfStdParser = getColored <$> stdLogParser
                                    <*> some space
                                    <*> levelParser
                                    <*> some space
-                                   <*> atfStepParser
-                                   <*> optionalSplitParser
                                    <*> messageParser
           dateTimeParser = timeParser <> string " " <> dateParser
           timeParser = count 2 digit <> string ":" <> count 2 digit <> string ":" <> count 2 digit
           dateParser = count 4 digit <> string "/" <> count 2 digit <> string "/" <> count 2 digit
           levelParser = string "[" <> some upper <> string "]"
-          atfStepParser = option "" $ try stepKeywordWithNum
-          messageParser = runnerMessage <|> normalMessage
-          runnerMessage = AtfStdMessageRun <$> (string "Run " <> stepKeyword <> string "...")
+          messageParser = runnerMessage <|> stepMessage <|> normalMessage
+          runnerMessage = AtfStdMessageRun <$> try (string "Run " <> stepKeyword <> string "...")
+          stepMessage = AtfStdStep <$> try stepKeywordWithNum <*> many anyChar
           normalMessage = AtfStdMessageNormal <$> many anyChar
+
           getColored AtfStdLog {..} = [ p dateTime & fore grey
                                       , p splitter1
                                       , p level & fore ( case level of
@@ -50,15 +48,14 @@ atfStdParser = getColored <$> stdLogParser
                                                               "[WARN]" -> yellow
                                                               "[DEBUG]" -> green
                                                               _ -> red
-                                                      )
+                                                       )
                                       , p splitter2
-                                      , p atfStep & fore yellow & back red
-                                      , p splitter3
-                                      , ( case message of
-                                              AtfStdMessageRun msg -> p msg & fore yellow & back blue
-                                              AtfStdMessageNormal msg -> p msg & fore cyan
-                                        )
                                       ]
+                                      <>
+                                      case message of
+                                           AtfStdMessageRun msg -> [ p msg & fore yellow & back blue ]
+                                           AtfStdStep step msg -> [ p step & fore yellow & back red, p msg & fore cyan ]
+                                           AtfStdMessageNormal msg -> [ p msg & fore cyan ]
 
 -- precondition #1: SUCCESS: Hello
 data AtfShortLog = AtfShortLog { atfStep :: String
@@ -75,7 +72,9 @@ atfShortParser = getColored <$> atfLogParser
                                      <*> optionalStatusParser
                                      <*> optionalSplitParser
                                      <*> messageParser
-          optionalStatusParser = option "" $ try $ statusParser <* lookAhead splitParser
+          splitParser = string ":" <> some space
+          optionalStatusParser = option "" $ try $ some upper <* lookAhead splitParser
+          optionalSplitParser = option "" $ try splitParser
           messageParser = many anyChar
 
           getColored AtfShortLog {..} = [ p atfStep & fore (if status /= "" then blue else red)
@@ -86,20 +85,11 @@ atfShortParser = getColored <$> atfLogParser
                                         ]
 
 -- Common parsers
-splitParser :: Parser String
-splitParser = string ":" <> some space
-
-optionalSplitParser :: Parser String
-optionalSplitParser = option "" $ try splitParser
-
 stepKeyword :: Parser String
 stepKeyword = choice $ string <$> ["precondition", "steps", "verify"]
 
 stepKeywordWithNum :: Parser String
 stepKeywordWithNum = stepKeyword <> string " #" <> some digit
-
-statusParser :: Parser String
-statusParser = some upper
 
 p :: String -> Chunk
 p = chunk.pack
