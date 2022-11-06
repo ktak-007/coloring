@@ -37,7 +37,7 @@ panelLogParser = getColored <$> logParser
                                     <|> string "WARN"
                                     <|> string "ERR"
                                     )
-        extensionParser = string " " *> string "[" <> some (letter <|> choice (char <$> "/_-")) <> string "][]"
+        extensionParser = string " " *> string "[" <> some (letter <|> oneOf "/_-") <> string "][]"
         messageParser = string " " *> many anyChar
 
         getColored PanelLog {..} = [ p dateTime & fore grey
