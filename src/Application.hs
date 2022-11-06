@@ -11,9 +11,10 @@ import Text.Parsec.String (Parser)
 
 import qualified Plesk.Atf as Atf
 import qualified Plesk.Panel as Panel
+import qualified Linux.Syslog as SL
 
 parsersList :: [Parser [Chunk]]
-parsersList = [ Atf.parser, Panel.parser ]
+parsersList = [ Atf.parser, Panel.parser, SL.parser ]
 
 genericParser :: Parser [Chunk]
 genericParser = choice parsersList
