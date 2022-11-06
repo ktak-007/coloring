@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
-module Plesk.Atf ( emptyList ) where
+module Plesk.Atf ( parser ) where
 
 import Control.Applicative (some)
 import Data.Function ((&))
@@ -10,12 +10,8 @@ import Rainbow
 import Text.Parsec
 import Text.Parsec.String (Parser)
 
-import Log
-
-emptyList :: [Log]
-emptyList = [ Log (empty::AtfStdLog)
-            , Log (empty::AtfShortLog)
-            ]
+parser :: Parser [Chunk]
+parser = atfStdParser <|> atfShortParser
 
 -- 04:12:38 2022/10/06 [INFO] precondition #1: Create client, subscription and domain (duration: 00.000)
 data AtfStdLog = AtfStdLog { dateTime :: String
@@ -30,9 +26,8 @@ data AtfStdMessage = AtfStdMessageNormal String
                    | AtfStdMessageRun String
                    deriving Show
 
-instance LogLine AtfStdLog where
-  empty = AtfStdLog "" "" "" "" "" "" $ AtfStdMessageNormal ""
-  logLineParser _ = getColored <$> stdLogParser
+atfStdParser :: Parser [Chunk]
+atfStdParser = getColored <$> stdLogParser
     where stdLogParser = AtfStdLog <$> dateTimeParser
                                    <*> some space
                                    <*> levelParser
@@ -48,22 +43,22 @@ instance LogLine AtfStdLog where
           messageParser = runnerMessage <|> normalMessage
           runnerMessage = AtfStdMessageRun <$> (string "Run " <> stepKeyword <> string "...")
           normalMessage = AtfStdMessageNormal <$> many anyChar
-  getColored AtfStdLog {..} = [ p dateTime & fore grey
-                              , p splitter1
-                              , p level & fore ( case level of
-                                                      "[INFO]" -> blue
-                                                      "[WARN]" -> yellow
-                                                      "[DEBUG]" -> green
-                                                      _ -> red
-                                               )
-                              , p splitter2
-                              , p atfStep & fore yellow & back red
-                              , p splitter3
-                              , ( case message of
-                                       AtfStdMessageRun msg -> p msg & fore yellow & back blue
-                                       AtfStdMessageNormal msg -> p msg & fore cyan
-                                )
-                              ]
+          getColored AtfStdLog {..} = [ p dateTime & fore grey
+                                      , p splitter1
+                                      , p level & fore ( case level of
+                                                              "[INFO]" -> blue
+                                                              "[WARN]" -> yellow
+                                                              "[DEBUG]" -> green
+                                                              _ -> red
+                                                      )
+                                      , p splitter2
+                                      , p atfStep & fore yellow & back red
+                                      , p splitter3
+                                      , ( case message of
+                                              AtfStdMessageRun msg -> p msg & fore yellow & back blue
+                                              AtfStdMessageNormal msg -> p msg & fore cyan
+                                        )
+                                      ]
 
 -- precondition #1: SUCCESS: Hello
 data AtfShortLog = AtfShortLog { atfStep :: String
@@ -73,9 +68,8 @@ data AtfShortLog = AtfShortLog { atfStep :: String
                                , message :: String
                                } deriving Show
 
-instance LogLine AtfShortLog where
-  empty = AtfShortLog "" "" "" "" ""
-  logLineParser _ = getColored <$> atfLogParser
+atfShortParser :: Parser [Chunk]
+atfShortParser = getColored <$> atfLogParser
     where atfLogParser = AtfShortLog <$> stepKeywordWithNum
                                      <*> splitParser
                                      <*> optionalStatusParser
@@ -84,12 +78,12 @@ instance LogLine AtfShortLog where
           optionalStatusParser = option "" $ try $ statusParser <* lookAhead splitParser
           messageParser = many anyChar
 
-  getColored AtfShortLog {..} = [ p atfStep & fore (if status /= "" then blue else red)
-                                , p splitter1
-                                , p status & fore (if status == "SUCCESS" then green else red)
-                                , p splitter2
-                                , p message & fore cyan
-                                ]
+          getColored AtfShortLog {..} = [ p atfStep & fore (if status /= "" then blue else red)
+                                        , p splitter1
+                                        , p status & fore (if status == "SUCCESS" then green else red)
+                                        , p splitter2
+                                        , p message & fore cyan
+                                        ]
 
 -- Common parsers
 splitParser :: Parser String

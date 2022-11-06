@@ -9,15 +9,10 @@ import Rainbow
 import Text.Parsec
 import Text.Parsec.String (Parser)
 
-import Log
 import qualified Plesk.Atf as Atf
 
-logList :: [Log]
-logList = Atf.emptyList
-
 parsersList :: [Parser [Chunk]]
-parsersList = map f logList
-  where f (Log logtype) = logLineParser logtype
+parsersList = [ Atf.parser ]
 
 genericParser :: Parser [Chunk]
 genericParser = choice parsersList
