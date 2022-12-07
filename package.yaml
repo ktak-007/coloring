@@ -39,11 +39,6 @@ ghc-options:
 - -Wredundant-constraints
 
 library:
-  when:
-  - condition: false
-    other-modules: Experiments
-  - condition: false
-    other-modules: Application1
   source-dirs: src
 
 executables:
