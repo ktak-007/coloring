@@ -10,3 +10,10 @@ The main program part is the file Application.hs - it collects parsers from modu
 
 It uses conduit library for piping and rainbow for coloring. Also, program modules have to use rainbow to color output after parsing.
 
+There are three modules: two modules for Plesk (for panel.log and for internal purposes - ATF) and one generic Linux log parser:
+* Linux.Syslog
+* Plesk.Panel
+* Plesk.Atf
+
+Each module have to provide line parser to list of colored chunks.
+
