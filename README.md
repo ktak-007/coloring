@@ -71,7 +71,9 @@ stack install
 * You have to download sources to your computer
 * You have to install Nix or Stack on your choice as described above
 * You have to run wrapper:
+
 a) src/nix-wrapper if your choice is Nix
+
 b) src/stack.hs if your choice is Stack
 
 Script run is the convient way to develop new parsers.
