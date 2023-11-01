@@ -1,6 +1,7 @@
-{ pkgs ? import <nixpkgs> {} }:
-
-pkgs.haskell.lib.buildStackProject {
-  name = "coloring";
-  src = ./.;
+{ sources ? import ./nix/sources.nix
+}:
+let pkgs = import sources.nixpkgs {};
+in
+{
+  coloring = pkgs.haskellPackages.callCabal2nix "coloring" ./. { };
 }

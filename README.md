@@ -25,16 +25,20 @@ There are three ways to use this program: as nix binary, stack binary and as scr
 
 * You have to install [the package manager Nix](https://nixos.org/download.html)
 
-Example of single-user nix installation:
+Example of single-user nix installation (non-root):
 ```
 sh <(curl -L https://nixos.org/nix/install) --no-daemon
+```
+Example of system-wide nix installation (root):
+```
+sh <(curl -L https://nixos.org/nix/install) --daemon
 ```
 
 After correct installation such progams as `nix-env` and `nix-shell` should be available. Probably, relogin required.
 
 * Install the program:
 ```
-nix-env -f https://github.com/ktak-007/coloring/archive/master.tar.gz -i --option sandbox false
+nix-env -f https://github.com/ktak-007/coloring/archive/master.tar.gz -i
 ```
 
 ### Stack
