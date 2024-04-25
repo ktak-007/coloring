@@ -38,7 +38,7 @@ After correct installation such progams as `nix-env` and `nix-shell` should be a
 
 * Install the program:
 ```
-nix-env -f https://github.com/ktak-007/coloring/archive/master.tar.gz -i
+nix-env -f https://github.com/ktak-007/coloring/archive/main.tar.gz -i
 ```
 
 ### Stack
