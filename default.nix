@@ -2,5 +2,5 @@
 }:
 let pkgs = import sources.nixpkgs {};
 in
-{ coloring = pkgs.haskellPackages.callPackage ./coloring.nix { };
+{ coloring = pkgs.haskellPackages.callCabal2nix "coloring" ./. {};
 }
